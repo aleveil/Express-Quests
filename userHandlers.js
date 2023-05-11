@@ -17,10 +17,8 @@ const getUserById = (req, res) => {
   database
     .query("SELECT * FROM users WHERE id = ?", [id])
     .then(([users]) => {
-      if (users[0] != null)
-				res.json(users[0]);
-      else
-				res.status(404).send("Not Found");
+      if (users[0] != null) res.json(users[0]);
+      else res.status(404).send("Not Found");
     })
     .catch((err) => {
       console.error(err);
@@ -30,19 +28,44 @@ const getUserById = (req, res) => {
 
 const postUser = (req, res) => {
   const { firstname, lastname, email, city, language } = req.body;
-  database.query(
-    "INSERT INTO users (firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?)",
-    [firstname, lastname, email, city, language]
-  ).then(([result]) => {
-    res.location(`/api/users/${result.insertId}`).sendStatus(201);
-  }).catch((err) => {
-    console.log(err);
-    res.status(500).send("Error saving the user")
-  })
+  database
+    .query(
+      "INSERT INTO users (firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?)",
+      [firstname, lastname, email, city, language]
+    )
+    .then(([result]) => {
+      res.location(`/api/users/${result.insertId}`).sendStatus(201);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send("Error saving the user");
+    });
+};
+
+const updateUser = (req, res) => {
+  const id = req.params.id;
+  const { firstname, lastname, email, city, language } = req.body;
+  database
+    .query(
+      "UPDATE users SET firstname = ?, lastname = ?, email = ?, city = ?, language = ? WHERE id = ?",
+      [firstname, lastname, email, city, language, id]
+    )
+    .then(([result]) => {
+      if (result.affectedRows === 0) {
+        res.status(404).send("Not Found");
+      } else {
+        res.sendStatus(204);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send("Error editing the user");
+    });
 };
 
 module.exports = {
   getUsers,
   getUserById,
-	postUser,
+  postUser,
+	updateUser,
 };
